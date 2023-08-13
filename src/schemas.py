@@ -15,7 +15,7 @@ class UserDb(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserResponse(UserModel):
@@ -34,12 +34,12 @@ class ContactModel(BaseModel):
     last_name: str = Field(max_length=150, min_length=1)
     email: EmailStr
     phone: str = Field(max_length=14, min_length=6,
-                       regex='\d{3}\-\d{3}\-\d{2}\-\d{2}|'
-                             '\d{3}\-\d{3}\-\d{4}|'
-                             '\(\d{3}\)\d{3}\-\d{2}\-\d{2}|'
-                             '\(\d{3}\)\d{3}\-\d{4}|'
-                             '\(\d{3}\)\d{7}|\d{10}|'
-                             '\+\d{12}$')
+                       pattern='\\d{3}\\-\\d{3}\\-\\d{2}\\-\\d{2}|'
+                               '\\d{3}\\-\\d{3}\\-\\d{4}|'
+                               '\\(\\d{3}\\)\\d{3}\\-\\d{2}\\-\\d{2}|'
+                               '\\(\\d{3}\\)\\d{3}\\-\\d{4}|'
+                               '\\(\\d{3}\\)\\d{7}|\\d{10}|'
+                               '\\+\\d{12}$')
     birthday: datetime
 
 
@@ -52,7 +52,7 @@ class ContactResponse(ContactModel):
     birthday: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class NoteModel(BaseModel):
@@ -63,7 +63,7 @@ class NoteModel(BaseModel):
 class NoteResponse(NoteModel):
     id: int
     text: str
-    contact = ContactResponse
+    contact: ContactResponse
 
     class Config:
-        orm_mode = True
+        from_attributes = True
