@@ -1,39 +1,39 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_
 
 from src.database.models import Note, User
 from src.schemas import NoteModel
 
 
-async def create(body: NoteModel, db: Session):
+async def create(body: NoteModel, db: AsyncSession):
     note = Note(**body.model_dump())
     db.add(note)
-    db.commit()
-    db.refresh(note)
+    await db.commit()
+    await db.refresh(note)
     return note
 
 
-async def get_all(user: User, db: Session):
+async def get_all(user: User, db: AsyncSession):
     notes = db.query(Note).filter(Note.user_id == user.id).all()
     return notes
 
 
-async def get_one(note_id, user: User, db: Session):
-    note = db.query(Note).filter(and_(Note.user_id == user.id, id=note_id)).first()
+async def get_one(note_id, user: User, db: AsyncSession):
+    note = await db.query(Note).filter(and_(Note.user_id == user.id, id=note_id)).first()
     return note
 
 
-async def update(note_id, body: NoteModel, user: User, db: Session):
+async def update(note_id, body: NoteModel, user: User, db: AsyncSession):
     note = await get_one(note_id, user, db)
     if note:
         note.text = body.text
-        db.commit()
+        await db.commit()
     return note
 
 
-async def delete(note_id, user: User, db: Session):
+async def delete(note_id, user: User, db: AsyncSession):
     note = await get_one(note_id, user, db)
     if note:
-        db.delete(note)
-        db.commit()
+        await db.delete(note)
+        await db.commit()
     return note

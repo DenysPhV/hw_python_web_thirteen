@@ -1,3 +1,4 @@
+import asyncpg
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 
@@ -11,7 +12,7 @@ app = FastAPI()
 
 
 @app.get("/", response_class=HTMLResponse, description="Main Page")
-async def root(request: Request):
+async def root():
     return {"message": "Welcome to FastAPI homework!"}
 
 

@@ -25,10 +25,9 @@ async def signup(body: UserModel, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=TokenModel)
 async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    user = await repository_user.get_user_by_email(body.password, db)
+    user = await repository_user.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email")
-
     if not auth_service.verify_password(body.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
 
@@ -40,10 +39,12 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = 
 
 
 @router.get("/refresh_token", response_model=TokenModel)
-async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security), db: AsyncSession = Depends(get_db)):
+async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security),
+                        db: AsyncSession = Depends(get_db)):
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
     user = await repository_user.get_user_by_email(email, db)
+
     if user.refresh_token != token:
         await repository_user.update_token(user, None, db)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
