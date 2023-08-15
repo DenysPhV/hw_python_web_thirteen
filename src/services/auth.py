@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from jose import jwt, JWTError
+from jose import jwt
 
 from src.database.connector import get_db
 from src.repository import users
