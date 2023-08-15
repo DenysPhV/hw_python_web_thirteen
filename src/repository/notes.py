@@ -19,7 +19,7 @@ async def get_all(user: User, db: AsyncSession):
 
 
 async def get_one(note_id, user: User, db: AsyncSession):
-    note = await db.query(Note).filter(and_(Note.user_id == user.id, id=note_id)).first()
+    note = await db.query(Note).filter(and_(Note.user_id == user.id, Note.id == note_id)).first()
     return note
 
 

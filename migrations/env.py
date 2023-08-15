@@ -23,7 +23,7 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 config.set_main_option("sqlalchemy.url", app_config.DATABASE_URL)
-# DATABASE_URL = 'postgresql://postgres:58796@127.0.0.1:5432/denis_fill_fa'
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")

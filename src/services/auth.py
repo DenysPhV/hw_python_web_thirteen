@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -19,6 +20,23 @@ class Auth:
     ALGORITHM = config.get("ALGORITHM")
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
+    def create_email_token(self, data: dict):
+        to_encode = data.copy()
+        expire = datetime.utcnow() + timedelta(days=7)
+        to_encode.update({"iat": datetime.utcnow(), "exp": expire})
+        token = jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
+        return token
+
+    async def get_email_from_token(self, token: str):
+        try:
+            payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
+            email = payload["sub"]
+            return email
+        except JWTError as e:
+            print(e)
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                detail="Invalid token for email verification")
+
     def get_hash(self, password: str):
         return self.pwd_context.hash(password)
 
@@ -29,7 +47,7 @@ class Auth:
 
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -38,16 +56,19 @@ class Auth:
 
             if payload["scope"] == "access_token":
                 email = payload["sub"]
-                if email is None:
+                if not email:
                     raise credentials_exception
-            raise credentials_exception
 
-        except JWTError as err:
+        except Exception as err:
+            logging.info(err)
             raise credentials_exception
 
         user = await users.get_user_by_email(email, db)
         if user is None:
-            raise credentials_exception
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},)
         raise user
 
     async def create_access_token(self, data: dict, expires_delta: Optional[float] = None):

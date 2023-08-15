@@ -7,11 +7,7 @@ from src.database.models import User
 
 
 async def get_user_by_email(email: str, db: AsyncSession) -> User:
-    sq = select(User).filter_by(email=email)
-    result = await db.execute(sq)
-    user = result.scalar_one_or_none()
-    logging.info(user)
-    return user
+    return db.query(User).filter(User.email == email).first()
 
 
 async def create_user(body: UserModel, db: AsyncSession) -> User:
@@ -22,6 +18,20 @@ async def create_user(body: UserModel, db: AsyncSession) -> User:
     return new_user
 
 
+async def confirmed_email(email: str, db: AsyncSession) -> None:
+    user = await get_user_by_email(email, db)
+    user.confirmed = True
+    await db.commit()
+
+
 async def update_token(user: User, token: str | None, db: AsyncSession) -> None:
     user.refresh_token = token
     await db.commit()
+
+
+async def update_avatar(email, url: str, db: AsyncSession) -> User:
+    user = await get_user_by_email(email, db)
+    user.avatar = url
+    await db.commit()
+    return user
+

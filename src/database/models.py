@@ -9,10 +9,10 @@ Base = declarative_base()
 class Contact(Base):
     __tablename__ = 'contacts'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    first_name: Mapped[str] = mapped_column(String, index=True)
-    last_name: Mapped[str] = mapped_column(String, index=True)
-    email: Mapped[str] = mapped_column(String, unique=True, index=True)
-    phone: Mapped[int] = mapped_column(String, index=True)
+    first_name: Mapped[str] = mapped_column(String(50), index=True)
+    last_name: Mapped[str] = mapped_column(String(80), index=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    phone: Mapped[int] = mapped_column(String(50), index=True)
     birthday: Mapped[date] = mapped_column(DateTime)
     created_at: Mapped[date] = mapped_column('created_at', DateTime, default=func.now(), nullable=True)
     updated_at: Mapped[date] = mapped_column('updated_at', DateTime, default=func.now(), onupdate=func.now(),
@@ -40,3 +40,4 @@ class User(Base):
     created_at: Mapped[date] = mapped_column('created_at', DateTime, default=func.now())
     updated_at: Mapped[date] = mapped_column('updated_at', DateTime, default=func.now(), onupdate=func.now())
     refresh_token: Mapped[str] = mapped_column(String(255), nullable=True)
+    avatar: Mapped[str] = mapped_column(String(255), nullable=True)

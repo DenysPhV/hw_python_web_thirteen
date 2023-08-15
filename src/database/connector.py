@@ -1,4 +1,3 @@
-from dotenv import dotenv_values
 from fastapi import HTTPException, status
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
