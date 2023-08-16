@@ -2,23 +2,26 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
-from dotenv import dotenv_values
+import redis as redis
+import pickle
+
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from jose import jwt
+from jose import jwt, JWTError
 
+from src.conf.config import settings
 from src.database.connector import get_db
 from src.repository import users
 
 
 class Auth:
-    pwd_context = CryptContext
-    config = dotenv_values(".env")
-    SECRET_KEY = config.get("SECRET_KEY")
-    ALGORITHM = config.get("ALGORITHM")
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    SECRET_KEY = settings.secret_key
+    ALGORITHM = settings.algorithm
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+    redis_db = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
     def create_email_token(self, data: dict):
         to_encode = data.copy()
@@ -58,18 +61,22 @@ class Auth:
                 email = payload["sub"]
                 if not email:
                     raise credentials_exception
+            else:
+                raise credentials_exception
 
-        except Exception as err:
-            logging.info(err)
+        except JWTError as e:
+            logging.info(e)
             raise credentials_exception
-
-        user = await users.get_user_by_email(email, db)
-        if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
-                headers={"WWW-Authenticate": "Bearer"},)
-        raise user
+        user = self.redis_db.get(f"user:{email}")
+        if not user:
+            user = await users.get_user_by_email(email, db)
+            if not user:
+                raise credentials_exception
+            await self.redis_db.set(f"user:{email}", pickle.dumps(user))
+            await self.redis_db.expire(f"user:{email}", 900)
+        else:
+            user = pickle.loads(user)
+        return user
 
     async def create_access_token(self, data: dict, expires_delta: Optional[float] = None):
         to_encode = data.copy()

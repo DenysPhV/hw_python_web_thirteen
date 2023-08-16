@@ -4,10 +4,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
 
-from src.conf.config import config
+from src.conf.config import settings
 
 
-SQLALCHEMY_DATABASE_URL = config.DATABASE_URL
+SQLALCHEMY_DATABASE_URL = settings.database_url
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 DBSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

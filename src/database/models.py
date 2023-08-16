@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import ForeignKey, String, Integer, DateTime, func
+from sqlalchemy import ForeignKey, String, Integer, DateTime, func, Boolean
 from sqlalchemy.orm import relationship, declarative_base, Mapped, mapped_column
 
 Base = declarative_base()
@@ -34,10 +34,11 @@ class Note(Base):
 class User(Base):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(40), nullable=False)
-    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(40))
+    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[date] = mapped_column('created_at', DateTime, default=func.now())
     updated_at: Mapped[date] = mapped_column('updated_at', DateTime, default=func.now(), onupdate=func.now())
     refresh_token: Mapped[str] = mapped_column(String(255), nullable=True)
     avatar: Mapped[str] = mapped_column(String(255), nullable=True)
+    confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
