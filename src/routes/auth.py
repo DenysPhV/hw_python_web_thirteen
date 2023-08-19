@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Security, BackgroundTasks, Request
 from fastapi.security import HTTPBearer, OAuth2PasswordRequestForm, HTTPAuthorizationCredentials
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repository import users as repository_user
@@ -22,7 +23,7 @@ async def signup(body: UserModel, background_task: BackgroundTasks, request: Req
     body.password = auth_service.get_hash(body.password)
 
     new_user = await repository_user.create_user(body, db)
-    background_task.add_task(send_email, body.email, new_user.name, request.base_url)
+    background_task.add_task(send_email, body.email, new_user.name, str(request.base_url))
     return {"user": new_user, "detail": "User successfully created"}
 
 
@@ -48,7 +49,7 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(sec
     email = await auth_service.decode_refresh_token(token)
     user = await repository_user.get_user_by_email(email, db)
 
-    if user.refresh_token != token:
+    if user.refresh_token is not token:
         await repository_user.update_token(user, None, db)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
@@ -57,6 +58,12 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(sec
 
     await repository_user.update_token(user, refresh_token, db)
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
+
+@router.get("/{username}")
+async def refresh_token(username: str, db: AsyncSession = Depends(get_db)):
+    print(f"{username} open uor email")
+    return RedirectResponse("http://localhost:8000/static/one.png")
 
 
 @router.get("/confirmed_email/{token}")
@@ -69,6 +76,7 @@ async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
         return {"message": "Your email is already confirmed"}
     await repository_user.confirmed_email(email, db)
     return {"message": "Email confirmed"}
+
 
 @router.post("/request_email")
 async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, request: Request,

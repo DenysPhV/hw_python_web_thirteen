@@ -1,7 +1,8 @@
 import redis.asyncio as redis
+import uvicorn
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from fastapi_limiter import FastAPILimiter
 from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy.orm import Session
@@ -18,7 +19,7 @@ app = FastAPI()
 async def startup():
     r = await redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0, encoding="utf-8",
                           decode_responses=True)
-    await FastAPILimiter.init(r)
+    return r
 
 
 @app.get("/", response_class=HTMLResponse, description="Main Page")
@@ -50,3 +51,8 @@ app.add_middleware(CORSMiddleware,
                    allow_methods=["*"],
                    allow_headers=["*"],
                    )
+
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
+
+if __name__ == '__main__':
+    uvicorn.run("main:app", host="localhost", reload=True, log_level="info")

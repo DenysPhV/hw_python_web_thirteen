@@ -1,1 +1,24 @@
 # hw_python_web_thirteen
+
+### you need create file `.env`
+
+```dotenv
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_PORT=
+
+SQLALCHEMY_DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}
+
+SECRET_KEY=
+ALGORITHM=
+
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_PORT=
+MAIL_SERVER=
+
+REDIS_HOST=localhost
+REDIS=6379
+
+```
