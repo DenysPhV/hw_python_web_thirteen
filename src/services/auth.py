@@ -14,6 +14,7 @@ from jose import jwt, JWTError
 from src.conf.config import settings
 from src.database.connector import get_db
 from src.repository import users
+from src.conf import messages
 
 
 class Auth:
@@ -106,9 +107,9 @@ class Auth:
             if payload["scope"] == "refresh_token":
                 email = payload["sub"]
                 return email
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid scope for token')
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.INVALID_SCOPE_TOKEN)
         except JWTError:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Could not validate credentials')
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=messages.CLOUD_NOT_VALIDATE)
 
 
 auth_service = Auth()
